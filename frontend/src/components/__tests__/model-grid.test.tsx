@@ -228,7 +228,7 @@ describe("ModelBrowser", () => {
   describe("library tools", () => {
     it("keeps advanced organization out of the initial toolbar", async () => {
       renderVault();
-      expect(await screen.findByRole("button", { name: "All Models", exact: true })).toBeVisible();
+      expect(await screen.findByRole("button", { name: "All Models" })).toBeVisible();
       expect(screen.queryByRole("region", { name: "Filters" })).toBeNull();
       expect(uploadButton()).toBeVisible();
       expect(screen.getByRole("button", { name: "Library tools" })).toHaveAttribute(
