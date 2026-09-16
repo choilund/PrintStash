@@ -144,3 +144,5 @@ return flow checks viewport visibility and keyboard navigation back to guided se
 - AI Search results: local semantic retrieval, grid/list switching, reload recovery, and clearing a submitted query back to the library (`ai-search/search.spec.ts`).
 
 - `lan-upload.spec.ts`: upload a 112 KiB STL without SubtleCrypto and verify persistence after reload.
+
+Search clarity: the AI-search flow verifies that Enter preserves the live library filter, explicit AI search opens results, and retrieval explanations stay hidden. Library workflows reveal secondary commands through Library tools.

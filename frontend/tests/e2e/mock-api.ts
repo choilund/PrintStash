@@ -1,3 +1,4 @@
+import { aCaption } from "../../src/test-support/captions";
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 
 const now = "2026-06-04T00:24:22.000000";
@@ -1689,6 +1690,22 @@ function handle(req: IncomingMessage, res: ServerResponse): void {
       published_at: "2026-07-14T10:00:00Z",
       checked_at: "2026-07-14T11:00:00Z",
     });
+    return;
+  }
+  if (
+    /^\/api\/v1\/subjects\/(model|multipart_model)\/\d+\/caption$/.test(url.pathname) &&
+    req.method === "GET"
+  ) {
+    sendJson(
+      res,
+      aCaption({
+        state: null,
+        phase: null,
+        text: "",
+        can_generate: false,
+        unavailable_reason: "caption_disabled",
+      }),
+    );
     return;
   }
   if (url.pathname === "/api/v1/libraries") {

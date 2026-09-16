@@ -84,10 +84,7 @@ test.describe("AI Search", () => {
       await transfer.dispose();
       const result = page.getByRole("link", { name: names[0], exact: true });
       await expect(result).toBeVisible();
-      await result.locator("xpath=ancestor::li").getByText("Why this result").click();
-      await expect(
-        result.locator("xpath=ancestor::li").getByText("Shape match", { exact: true }),
-      ).toBeVisible();
+      await expect(page.getByText("Why this result")).toHaveCount(0);
       expect(page.url()).not.toContain("private-query");
       for (const [label, width, height] of [
         ["desktop", 1280, 900],
@@ -192,20 +189,20 @@ test.describe("AI Search", () => {
         if (request.url().includes("/api/v1/search?")) requests.push(request.url());
       });
       const box = page.getByRole("searchbox", { name: "Search library" });
-      await expect(page.getByRole("button", { name: "Search with AI" })).toBeVisible();
       await box.fill("bike lamp attachment");
+      await expect(page.getByRole("button", { name: "Search with AI" })).toBeVisible();
       await expect.poll(() => requests.length).toBeGreaterThan(0);
       expect(requests.every((url) => new URL(url).searchParams.get("mode") === "lexical")).toBe(
         true,
       );
       await box.press("Enter");
+      await expect(page).toHaveURL(/\/\?q=bike\+lamp\+attachment/);
+      await box.click();
+      await page.getByRole("button", { name: "Search with AI" }).click();
       await expect(page).toHaveURL(/\/search\?q=bike\+lamp\+attachment/);
       const link = page.getByRole("link", { name, exact: true });
       await expect(link).toBeVisible();
-      await link.locator("xpath=ancestor::li").getByText("Why this result").click();
-      await expect(
-        link.locator("xpath=ancestor::li").getByText("Related description"),
-      ).toBeVisible();
+      await expect(page.getByText("Why this result")).toHaveCount(0);
       for (const [label, width, height] of [
         ["mobile", 390, 844],
         ["desktop", 1280, 900],
@@ -230,7 +227,8 @@ test.describe("AI Search", () => {
         0,
       );
       await box.fill("bike lamp attachment");
-      await box.press("Enter");
+      await box.click();
+      await page.getByRole("button", { name: "Search with AI" }).click();
       await expect(link).toBeVisible();
       await link.click();
       await expect(page).toHaveURL(new RegExp(`/documents/${documentId}$`));

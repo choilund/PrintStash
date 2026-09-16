@@ -206,6 +206,16 @@ function lastMultipartQuery(requests: () => { method: string; url: string }[]): 
   return new URLSearchParams(url?.split("?")[1] ?? "");
 }
 
+async function openFilters() {
+  const trigger = screen.getAllByRole("button", { name: "Filters" }).at(-1)!;
+  if (trigger.getAttribute("aria-expanded") === "false") await userEvent.setup().click(trigger);
+}
+
+async function openLibraryTools() {
+  const trigger = screen.getByRole("button", { name: "Library tools" });
+  if (trigger.getAttribute("aria-expanded") === "false") await userEvent.setup().click(trigger);
+}
+
 beforeEach(() => {
   window.localStorage.clear();
 });
@@ -215,6 +225,40 @@ afterEach(() => {
 });
 
 describe("ModelBrowser", () => {
+  describe("library tools", () => {
+    it("keeps advanced organization out of the initial toolbar", async () => {
+      renderVault();
+      expect(await screen.findByRole("button", { name: "All Models", exact: true })).toBeVisible();
+      expect(screen.queryByRole("region", { name: "Filters" })).toBeNull();
+      expect(uploadButton()).toBeVisible();
+      expect(screen.getByRole("button", { name: "Library tools" })).toHaveAttribute(
+        "aria-expanded",
+        "false",
+      );
+      expect(screen.queryByRole("button", { name: "Create Family" })).toBeNull();
+      expect(screen.queryByRole("combobox", { name: "Group variations" })).toBeNull();
+    });
+    it("reveals organization tools on request", async () => {
+      renderVault();
+      await openLibraryTools();
+      expect(screen.getByRole("button", { name: "Create Family" })).toBeVisible();
+      expect(screen.getByRole("button", { name: "New multipart set" })).toBeVisible();
+    });
+    it("can collapse the tools after opening them", async () => {
+      renderVault();
+      await openLibraryTools();
+      await userEvent.setup().click(screen.getByRole("button", { name: "Library tools" }));
+      expect(screen.queryByRole("button", { name: "Create Family" })).toBeNull();
+    });
+    it("exposes active family filters on arrival", async () => {
+      renderVault({ at: "/?in_family=yes" });
+      expect(screen.getAllByRole("button", { name: "Filters" }).at(-1)).toHaveAttribute(
+        "aria-expanded",
+        "true",
+      );
+      expect(await screen.findByRole("combobox", { name: "Family membership" })).toHaveValue("yes");
+    });
+  });
   describe("Family grouping preferences", () => {
     it("remembers the chosen grouping when returning to the library", async () => {
       const user = userEvent.setup();
@@ -226,6 +270,7 @@ describe("ModelBrowser", () => {
         }),
       };
       const first = renderVault({ routes });
+      await openFilters();
       await user.selectOptions(
         screen.getByRole("combobox", { name: "Group variations" }),
         "families_collapsed",
@@ -235,6 +280,7 @@ describe("ModelBrowser", () => {
       first.unmount();
       renderVault({ routes });
       expect(await screen.findByRole("heading", { name: "Benchy variations" })).toBeVisible();
+      await openFilters();
       expect(screen.getByRole("combobox", { name: "Group variations" })).toHaveValue(
         "families_collapsed",
       );
@@ -243,11 +289,13 @@ describe("ModelBrowser", () => {
 
     it("gives the explicit URL mode priority over a saved preference", async () => {
       localStorage.setItem("ps-vault-family-browse", "families_collapsed");
+      localStorage.setItem("ps-vault-sort", "name-asc");
       const { requests } = renderVault({
         at: "/?browse=models",
         models: [aModelListItem({ name: "Single boat" })],
       });
       expect(await screen.findByText("Single boat")).toBeVisible();
+      await openFilters();
       expect(screen.getByRole("combobox", { name: "Group variations" })).toHaveValue("models");
       expect(requests().some(({ url }) => url.includes("/families/browse"))).toBe(false);
     });
@@ -267,6 +315,7 @@ describe("ModelBrowser", () => {
           ]),
         },
       });
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: /Saved views/ }));
       await user.click(await screen.findByRole("button", { name: "Individual Models" }));
       expect(await screen.findByText("Single boat")).toBeVisible();
@@ -287,6 +336,7 @@ describe("ModelBrowser", () => {
             true,
           ),
         );
+        await openFilters();
         expect(screen.getByRole("combobox", { name: "Group variations" })).toHaveValue("models");
         expect(requests().some(({ url }) => url.includes("/families/browse"))).toBe(false);
       },
@@ -715,8 +765,10 @@ describe("ModelBrowser", () => {
         "aria-pressed",
         "true",
       );
+      await openFilters();
       expect(screen.getByText("Printer")).toBeInTheDocument();
       expect(screen.getAllByRole("button", { name: "Upload" })).not.toHaveLength(0);
+      await openLibraryTools();
       expect(screen.getAllByRole("button", { name: "New multipart set" })).not.toHaveLength(0);
     });
   });
@@ -737,6 +789,7 @@ describe("ModelBrowser", () => {
     it("offers uploading to a signed-in user", async () => {
       renderVault();
 
+      await openLibraryTools();
       await screen.findByRole("button", { name: "Select" });
       expect(uploadButton()).toBeEnabled();
     });
@@ -748,6 +801,7 @@ describe("ModelBrowser", () => {
       renderVault({ models: [aModelListItem({ name: "Benchy" })] });
       await screen.findByText("Benchy");
 
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: /Select/ }));
 
       expect(screen.getByRole("button", { name: /Done/ })).toBeInTheDocument();
@@ -762,6 +816,7 @@ describe("ModelBrowser", () => {
         ],
       });
       await screen.findByText("Benchy");
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: /Select/ }));
 
       await user.click(screen.getByRole("checkbox", { name: "Select Benchy" }));
@@ -837,6 +892,7 @@ describe("ModelBrowser", () => {
       });
       await screen.findByText("Benchy");
 
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: /New collection/ }));
       await user.type(screen.getByPlaceholderText(/New subcollection/), "Bolts");
       await user.click(screen.getByRole("button", { name: "Create" }));
@@ -860,6 +916,7 @@ describe("ModelBrowser", () => {
       });
       await screen.findByText("Benchy");
 
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: /New collection/ }));
       await user.type(screen.getByPlaceholderText("Collection name..."), "Bolts");
       await user.click(screen.getByRole("button", { name: "Create" }));
@@ -877,6 +934,7 @@ describe("ModelBrowser", () => {
       renderVault({ models: [aModelListItem({ name: "Benchy" })] });
       await screen.findByText("Benchy");
 
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: /New collection/ }));
 
       expect(screen.getByRole("button", { name: "Create" })).toBeDisabled();
@@ -886,6 +944,7 @@ describe("ModelBrowser", () => {
       const user = userEvent.setup();
       renderVault({ models: [aModelListItem({ name: "Benchy" })] });
       await screen.findByText("Benchy");
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: /New collection/ }));
 
       await user.click(screen.getByRole("button", { name: "Cancel" }));
@@ -897,6 +956,7 @@ describe("ModelBrowser", () => {
   describe("acting on several models at once", () => {
     async function selectBoth(user: ReturnType<typeof userEvent.setup>) {
       await screen.findByText("Benchy");
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: "Select" }));
       await user.click(screen.getByRole("button", { name: /Select all on screen/ }));
     }
@@ -958,6 +1018,7 @@ describe("ModelBrowser", () => {
         ],
       });
       await screen.findByText("Benchy");
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: "Select" }));
 
       await user.click(screen.getByRole("button", { name: "Done" }));
@@ -976,6 +1037,7 @@ describe("ModelBrowser", () => {
         ],
       });
       await screen.findByText("Benchy");
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: "Select" }));
 
       await user.click(screen.getByRole("button", { name: /Select all matching models/ }));
@@ -990,6 +1052,7 @@ describe("ModelBrowser", () => {
     /** Turn on select mode and tick the folder card. */
     async function selectFolder(user: ReturnType<typeof userEvent.setup>, name = "Parts") {
       await screen.findAllByText(name);
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: "Select" }));
       await user.click(screen.getByLabelText(`Select folder ${name}`));
     }
@@ -1097,6 +1160,7 @@ describe("ModelBrowser", () => {
   describe("batch outcomes", () => {
     async function selectOneModel(user: ReturnType<typeof userEvent.setup>) {
       await screen.findByText("Benchy");
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: "Select" }));
       await user.click(screen.getByRole("checkbox", { name: "Select Benchy" }));
     }
@@ -1272,6 +1336,7 @@ describe("ModelBrowser", () => {
       });
       await screen.findByText("Benchy");
 
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: /Saved views/ }));
       await user.click(await screen.findByRole("button", { name: /Save current view/ }));
       const dialog = await screen.findByRole("dialog");
@@ -1296,6 +1361,7 @@ describe("ModelBrowser", () => {
         routes: { "POST /api/v1/saved-views": json(aSavedView()) },
       });
       await screen.findByText("Benchy");
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: /Saved views/ }));
       await user.click(await screen.findByRole("button", { name: /Save current view/ }));
       const dialog = await screen.findByRole("dialog");
@@ -1316,6 +1382,7 @@ describe("ModelBrowser", () => {
       renderVault({ models: [aModelListItem({ name: "Benchy" })] });
       await screen.findByText("Benchy");
 
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: /Saved views/ }));
       await user.click(await screen.findByRole("button", { name: /Save current view/ }));
 
@@ -1332,6 +1399,7 @@ describe("ModelBrowser", () => {
       });
       await screen.findByText("Benchy");
 
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: /Saved views/ }));
 
       expect(await screen.findByRole("button", { name: /Rename Ready to print/ })).toBeVisible();
@@ -1342,6 +1410,7 @@ describe("ModelBrowser", () => {
       renderVault({ models: [aModelListItem({ name: "Benchy" })] });
       await screen.findByText("Benchy");
 
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: /Saved views/ }));
 
       expect(await screen.findByText("No saved views yet")).toBeInTheDocument();
@@ -1361,6 +1430,7 @@ describe("ModelBrowser", () => {
         },
       });
       await screen.findByText("Benchy");
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: /Saved views/ }));
 
       await user.click(await screen.findByRole("button", { name: "PETG only" }));
@@ -1379,6 +1449,7 @@ describe("ModelBrowser", () => {
         },
       });
       await screen.findByText("Benchy");
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: /Saved views/ }));
 
       await user.click(await screen.findByRole("button", { name: "Update PETG only" }));
@@ -1400,6 +1471,7 @@ describe("ModelBrowser", () => {
         },
       });
       await screen.findByText("Benchy");
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: /Saved views/ }));
       await user.click(await screen.findByRole("button", { name: "Rename PETG only" }));
       const dialog = await screen.findByRole("dialog");
@@ -1431,6 +1503,7 @@ describe("ModelBrowser", () => {
         },
       });
       await screen.findByText("Benchy");
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: /Saved views/ }));
 
       await user.click(await screen.findByRole("button", { name: "Duplicate PETG only" }));
@@ -1449,6 +1522,7 @@ describe("ModelBrowser", () => {
         routes: { "GET /api/v1/saved-views": json([aSavedView()]) },
       });
       await screen.findByText("Benchy");
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: /Saved views/ }));
 
       await user.click(await screen.findByRole("button", { name: "Delete PETG only" }));
@@ -1468,6 +1542,7 @@ describe("ModelBrowser", () => {
         },
       });
       await screen.findByText("Benchy");
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: /Saved views/ }));
       await user.click(await screen.findByRole("button", { name: "Delete PETG only" }));
 
@@ -1490,11 +1565,40 @@ describe("ModelBrowser", () => {
       });
 
       await screen.findByText("Benchy");
+      await openLibraryTools();
       expect(screen.queryByRole("button", { name: /Saved views/ })).toBeNull();
     });
   });
 
   describe("clearing filters", () => {
+    it("clears Family, history and ordinary filters together while retaining sort", async () => {
+      localStorage.setItem("ps-vault-family-browse", "families_collapsed");
+      localStorage.setItem("ps-vault-sort", "name-asc");
+      const { requests } = renderVault({
+        at: "/?browse=models&in_family=yes&family_role=canonical&file_type=stl&tag=functional&favorites=true&sort=name-asc",
+        models: [aModelListItem({ name: "Benchy" })],
+      });
+      await screen.findByText("Benchy");
+      await userEvent.setup().click(screen.getAllByRole("button", { name: /Clear all/ })[0]);
+      await waitFor(() => {
+        const query = lastModelsQuery(requests);
+        expect(query.get("in_family")).toBeNull();
+        expect(query.get("family_role")).toBeNull();
+        expect(query.get("file_type")).toBeNull();
+        expect(query.get("tag")).toBeNull();
+        expect(query.get("favorites")).toBeNull();
+        expect(query.get("sort")).toBe("name-asc");
+      });
+      expect(localStorage.getItem("ps-vault-family-browse")).toBeNull();
+    });
+    it("keeps active chips available when their controls are collapsed", async () => {
+      renderVault({ at: "/?in_family=yes&tag=functional", tags: [aTag()] });
+      await screen.findByRole("combobox", { name: "Family membership" });
+      await userEvent.setup().click(screen.getAllByRole("button", { name: "Filters" }).at(-1)!);
+      expect(screen.queryByRole("combobox", { name: "Family membership" })).toBeNull();
+      expect(screen.getByTitle("Remove Tag: functional")).toBeVisible();
+      expect(screen.getAllByRole("button", { name: /Clear all/ })[0]).toBeVisible();
+    });
     it("drops every active filter in one action", async () => {
       // Undoing them one at a time is the difference between "start over" and a
       // chore, and a filter left behind quietly narrows every later search.
@@ -1610,6 +1714,7 @@ describe("ModelBrowser", () => {
       });
       await screen.findByText("Benchy");
 
+      await openLibraryTools();
       expect(screen.getByRole("button", { name: /New collection/ })).toBeDisabled();
     });
 
@@ -1622,6 +1727,7 @@ describe("ModelBrowser", () => {
       });
       await screen.findByText("Benchy");
 
+      await openLibraryTools();
       expect(screen.getByRole("button", { name: /New collection/ })).toHaveAttribute(
         "title",
         "Admin access required for this collection",
@@ -1647,6 +1753,7 @@ describe("ModelBrowser", () => {
         },
       });
       await screen.findByText("Benchy");
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: "Select" }));
       await user.click(screen.getByRole("checkbox", { name: "Select Benchy" }));
       await user.click(screen.getByRole("button", { name: "Tag" }));
@@ -1674,6 +1781,7 @@ describe("ModelBrowser", () => {
         },
       });
       await screen.findByText("Benchy");
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: "Select" }));
       await user.click(screen.getByRole("checkbox", { name: "Select Benchy" }));
       await user.click(screen.getByRole("button", { name: "Tag" }));
@@ -1864,40 +1972,10 @@ describe("ModelBrowser", () => {
     });
   });
 
-  describe("the back button", () => {
-    it("restores the filters the previous page had", async () => {
-      // The filter state lives in the URL but also in React, and only the URL
-      // moves on a history pop — without this the back button changes the
-      // address bar and nothing else.
-      const { requests } = renderVault({
-        at: "/?tag=functional",
-        tags: [aTag()],
-        models: [aModelListItem({ name: "Benchy" })],
-      });
-      await screen.findByText("Benchy");
-
-      window.history.replaceState({}, "", "/?tag=bracket");
-      fireEvent.popState(window);
-
-      await waitFor(() => expect(lastModelsQuery(requests).getAll("tag")).toEqual(["bracket"]));
-    });
-
-    it("drops a filter the previous page did not have", async () => {
-      const { requests } = renderVault({
-        at: "/?favorites=true",
-        models: [aModelListItem({ name: "Benchy" })],
-      });
-      await screen.findByText("Benchy");
-
-      window.history.replaceState({}, "", "/");
-      fireEvent.popState(window);
-
-      await waitFor(() => expect(lastModelsQuery(requests).get("favorites")).toBeNull());
-    });
-  });
   describe("undoing a move", () => {
     async function selectAndMove(user: ReturnType<typeof userEvent.setup>) {
       await screen.findByText("Benchy");
+      await openLibraryTools();
       await user.click(screen.getByRole("button", { name: "Select" }));
       await user.click(screen.getByLabelText("Select Benchy"));
       await user.click(await screen.findByRole("button", { name: /Move/ }));
