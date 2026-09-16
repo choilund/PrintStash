@@ -112,7 +112,10 @@ permission preflight. The required WebDAV restart/safe-GC flow also passed after
 correcting its stale heading assertion to the base branch’s “Storage location”
 label. The remote-backup suite also opens the existing migration disclosure before
 using its shared provider picker; all three backup/Nextcloud browser cases passed
-locally, including linked-target protection. Final CI status is tracked on PR #178.
+locally, including linked-target protection. The migration browser flow opens that
+disclosure before planning and again after restart, preserving all copy, cutover,
+audit and downloaded-byte assertions. Both onboarding variants passed (four cases),
+and the migration restart/cutover case passed. Final CI status is tracked on PR #178.
 
 Manual inspection used only repository mock data at 390px and 1280px, both themes,
 and the 400px minimum detail panel. Library and search pages had no horizontal
@@ -125,6 +128,17 @@ Security diff scans of `4b9afeb9..b91ab3ef` and `b91ab3ef..da83f8d9` found no
 reportable findings across all production inventory entries. Subsequent changes
 are test setup/regressions and this evidence document; their diffs were reviewed.
 Impeccable's mechanical detector reported no findings in the changed components.
+Python 3.13 reproduced an anonymous SQL CTE name collision in the unchanged sparse
+quality benchmark. A materialized keyword-score CTE now has an explicit nested
+name, preventing reuse of its original temporary object's identity. Ranking and
+authorization predicates are unchanged. The frozen benchmark and all ten sparse
+integration cases passed on Python 3.13, including repeated filtered queries and
+two independently composed readers. All 49 focused lexical, sparse and clarity
+retrieval cases subsequently passed together, followed by three successful Python
+3.13 benchmark replays with different hash seeds. All 14 PostgreSQL search
+cases passed, including sparse expansion and visibility. The library empty-state browser fixture now
+uses a unique single token: its former hyphenated phrase contained “model” and
+correctly matched Models created by earlier scenarios.
 Compatibility testing also exposed fixture timing assumptions. Warmup cancellation
 now uses file-backed SQLite WAL, matching production concurrency. The thumbnail
 fallback test now asserts the base branch's distinct Rust/multiview and media
@@ -198,3 +212,6 @@ Status denotes final verified evidence, not merely a test's presence.
 | 37 | Truncated thumbnail line is rejected | Edge | Unterminated G-code header | No embedded preview | Backend unit | ✅ Focused boundary tests |
 | 38 | Legacy migration can pull its pinned source | Error | Docker Hub image unavailable | Identical Quay digest; twice-verified copy retains source objects | Repo / container integration | ✅ 22 config cases and two real migrations |
 | 39 | Shared provider forms preserve linked targets | Edge | Nextcloud connection edited through current storage navigation | Credentials retained; incompatible linked-target edit rejected | Real-backend Playwright | ✅ All three remote-backup cases |
+| 40 | Repeated sparse queries compile safely | Edge | Changed queries and independently composed readers on Python 3.13 | Stable ranking; excluded passages remain absent | Backend integration | ✅ Eleven sparse cases including the frozen benchmark |
+| 41 | Unmatched library search has an empty state | Edge | Populated library and unique absent token | Empty-state message and no Model links | Real-backend Playwright | ✅ Seeded browser regression |
+| 42 | Migration controls remain reachable after restart | Edge | Collapsed storage section before planning and recovery | Verified cutover, audit and unchanged Artifact bytes | Real-backend Playwright | ✅ Complete migration lifecycle |

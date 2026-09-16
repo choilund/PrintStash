@@ -90,11 +90,10 @@ test.describe("vault", () => {
     await expect(modelCard(page, plain)).toHaveCount(0);
   });
 
-  test("a meshless search term yields the empty state", async ({ page }) => {
+  test("an unmatched search term yields the empty state", async ({ page }) => {
+    await uploadGcodeModel(page, `e2e-model-${Date.now()}`);
     await page.goto("/");
-    await page
-      .getByRole("searchbox", { name: "Search library" })
-      .fill(`no-such-model-${Date.now()}`);
+    await page.getByRole("searchbox", { name: "Search library" }).fill(`unmatched${Date.now()}`);
     await expect(page).toHaveURL(/[?&]q=/);
     await expect(page.getByText("No models found", { exact: true })).toBeVisible();
     await expect(page.locator('a[href^="/models/"]')).toHaveCount(0);
