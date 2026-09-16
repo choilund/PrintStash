@@ -78,7 +78,8 @@ for (const viewport of [
       await page.screenshot({ path: testInfo.outputPath("library.png"), fullPage: true });
       await input.click();
       await page.getByRole("button", { name: "Search with AI", exact: true }).click();
-      await expect(page).toHaveURL(/\/search\?q=bracket&parse=1$/);
+      // The results route consumes the one-shot parse flag; assert its settled URL.
+      await expect(page).toHaveURL(/\/search\?q=bracket$/);
       await expect(page.getByRole("link", { name: "Desk bracket", exact: true })).toBeVisible();
       await expect(page.getByText("Why this result")).toHaveCount(0);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(

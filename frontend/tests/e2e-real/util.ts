@@ -4,8 +4,10 @@ import { expect, type Page } from "@playwright/test";
 export async function openLibraryTools(page: Page): Promise<void> {
   if (await page.getByRole("region", { name: "Library tools", exact: true }).isVisible()) return;
   const trigger = page.getByRole("button", { name: "Library tools", exact: true });
+  const more = page.getByRole("main").getByRole("button", { name: "More", exact: true });
+  await expect(trigger.or(more).first()).toBeVisible();
   if (!(await trigger.isVisible())) {
-    await page.getByRole("button", { name: "More", exact: true }).click();
+    await more.click();
     await page.getByRole("menuitem", { name: "Library tools", exact: true }).click();
   } else if ((await trigger.getAttribute("aria-expanded")) === "false") {
     await trigger.click();

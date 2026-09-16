@@ -90,17 +90,49 @@ improvement nor a stable performance regression. The committed vector file retai
 separate actual CPU-inference timings. Exact spelling recovery also passes with AI
 disabled, so finding Spectre no longer depends on a semantic match.
 
-Local verification so far: 37 final lexical/relevance integration tests plus two
-visibility cases passed. Core coverage ran 2,105 tests and all five floor checks:
-99.28% combined statement/branch coverage; both new helpers have 100% coverage.
-The new PostgreSQL cases passed. The full PostgreSQL file exposed an existing
-rollback test that omitted the base branch's deferred projection worker; explicitly
-advancing that worker restored its intended assertion (verified separately).
-Existing text, visual and sparse quality files passed. Frontend format/lint/typecheck
-and backend/core lint/typecheck passed. The security diff scan
-of `4b9afeb9..b91ab3ef` reviewed all 20 source inventory entries and found no reportable
-issue. Broad coverage and browser gates are still in progress; early or interrupted
-runs are not passed gates.
+Verification evidence includes 37 lexical/relevance integration tests, both new
+visibility cases, and both uploaded-image API cases (strong and below-floor).
+Core coverage ran 2,105 tests and all five floor checks: 99.28% combined
+statement/branch coverage; both new helpers have 100% coverage. New PostgreSQL
+cases passed. The rollback regression now explicitly advances the base branch's
+deferred projection worker, restoring its intended publication assertion.
+Existing text, visual and sparse quality files passed.
+
+On commit `da83f8d9`, CI passed all 2,712 frontend tests (2,453 app, 199 UI,
+60 domain), lint, type checking and the ratcheted coverage gate. App coverage was
+82.45% statements and 77.65% branches. The previously interrupted local undo run
+is superseded by that complete clean-runner verification. The five new mock-browser
+search/detail tests passed; broader browser testing exposed a missing search-status
+mock and an obsolete Spanish accessible-label locator, which are corrected here.
+The caption mock gap is also closed. The real-browser helper now waits for the toolbar before choosing its responsive
+menu, and the Similar saved-view workflow opens the advanced filters and Library
+tools explicitly. Final CI status is tracked on PR #178.
+
+Manual inspection used only repository mock data at 390px and 1280px, both themes,
+and the 400px minimum detail panel. Library and search pages had no horizontal
+overflow. Enter retained the library route; the labeled AI action opened results.
+The Similar panel showed readable names and a reachable Compare action. Automated
+browser artifacts include phone/desktop screenshots, Back and clear-query checks,
+and detail-tab keyboard focus assertions.
+
+Security diff scans of `4b9afeb9..b91ab3ef` and `b91ab3ef..da83f8d9` found no
+reportable findings across all production inventory entries. Subsequent changes
+are test setup/regressions and this evidence document; their diffs were reviewed.
+Impeccable's mechanical detector reported no findings in the changed components.
+Compatibility testing also exposed fixture timing assumptions. Warmup cancellation
+now uses file-backed SQLite WAL, matching production concurrency. The thumbnail
+fallback test now asserts the base branch's distinct Rust/multiview and media
+thumbnail render identities, including that incompatible vectors are not copied. The isolated
+consumer waits for search publication because the live worker may already hold the
+projection lease. The consumer and cancellation assertions remain unchanged; the obsolete thumbnail
+reuse assertion now verifies the base branch’s explicit recipe separation.
+
+The scale-test fixture also retires/drops its native index DDL before its registry
+rows are cleared. The leak was reproduced by running scale tests immediately
+before the unchanged Alembic schema-drift checks.
+
+Broader backend and real-browser gates must finish successfully before this PR
+is marked ready; interrupted local runs are not passed gates.
 
 ## Acceptance coverage
 
@@ -108,22 +140,27 @@ Status denotes final verified evidence, not merely a test's presence.
 
 | # | Behavior | Category | Input | Asserted outcome | Tier | Status |
 |---|---|---|---|---|---|---|
-| 1 | Enter preserves library filtering | Happy | Query plus active filters | Library URL retains filters | Frontend unit | ❌ Final run pending |
-| 2 | Explicit AI action opens results | Happy | Ready AI, nonempty query | Dedicated search route | Frontend unit | ❌ Final run pending |
-| 3 | Clearing preserves other filters | Edge | Filtered library | Only query removed | Frontend unit/browser | ❌ Final run pending |
-| 4 | Late responses stay stale | Edge | Replaced/cleared query | No stale suggestions | Frontend unit | ❌ Final run pending |
-| 5 | Cards omit explanations | Happy | Evidence-bearing results | No explanation disclosure | Frontend unit | ❌ Final run pending |
-| 6 | Advanced filters start collapsed | Happy | Default library | Collection navigation visible | Frontend unit | ❌ Final run pending |
-| 7 | Active filters are discoverable | Edge | Shared URL/saved view | Expanded sections and chips | Frontend unit/browser | ❌ Final run pending |
-| 8 | Clear all resets advanced filters | Edge | Family and ordinary filters | Default filtering, preserved sort | Frontend unit | ❌ Final run pending |
-| 9 | Secondary actions retain permissions | Error | Read-only collection | Restricted actions disabled | Frontend unit | ❌ Final run pending |
-| 10 | Tabs fit narrow panels | Edge | 400px detail panel | No horizontal overflow | Playwright | ❌ Final run pending |
-| 11 | Similar names remain readable | Edge | Narrow desktop panel | Name width and reachable Compare | Playwright | ❌ Final run pending |
+| 1 | Enter preserves library filtering | Happy | Query plus active filters | Library URL retains filters | Frontend unit | ✅ CI unit/coverage |
+| 2 | Explicit AI action opens results | Happy | Ready AI, nonempty query | Dedicated search route | Frontend unit | ✅ CI unit/coverage |
+| 3 | Clearing preserves other filters | Edge | Filtered library | Only query removed | Frontend unit/browser | ✅ CI unit and mock-browser |
+| 4 | Late responses stay stale | Edge | Replaced/cleared query | No stale suggestions | Frontend unit | ✅ CI unit/coverage |
+| 5 | Cards omit explanations | Happy | Evidence-bearing results | No explanation disclosure | Frontend unit | ✅ CI unit/coverage |
+| 6 | Advanced filters start collapsed | Happy | Default library | Collection navigation visible | Frontend unit | ✅ CI unit/coverage |
+| 7 | Active filters are discoverable | Edge | Shared URL/saved view | Expanded sections and chips | Frontend unit/browser | ✅ CI unit and mock-browser |
+| 8 | Clear all resets advanced filters | Edge | Family and ordinary filters | Default filtering, preserved sort | Frontend unit | ✅ CI unit/coverage |
+| 9 | Secondary actions retain permissions | Error | Read-only collection | Restricted actions disabled | Frontend unit | ✅ CI unit/coverage |
+| 10 | Tabs fit narrow panels | Edge | 400px detail panel | No horizontal overflow | Playwright | ✅ CI narrow-panel browser |
+| 11 | Similar names remain readable | Edge | Narrow desktop panel | Name width and reachable Compare | Playwright | ✅ CI narrow-panel browser |
 | 12 | Specter finds Spectre | Happy | Spelling variants/distractors | Intended result first | Backend integration | ✅ 37-test final retrieval run |
 | 13 | Goose matches appearance | Happy | Opaque name, original geometry | Relevant result in top five | Backend integration | ✅ 37-test final retrieval run |
 | 14 | Holder matches function | Happy | Indirect name, functional metadata | Relevant result in top five | Backend integration | ✅ 37-test final retrieval run |
-| 15 | Weak matches are rejected | Edge | Absent concept | No strong matches | Backend integration | ✅ 37-test final retrieval run |
+| 15 | Weak matches are rejected | Edge | Absent concept / below-floor image | No strong matches, AI remains available | Backend integration | ✅ Measured text plus image API contract |
 | 16 | Search respects visibility | Error | Private/trashed/filtered candidates | No unauthorized results | Backend integration/PostgreSQL | ✅ Both candidate paths and PostgreSQL cases |
-| 17 | Semantic failure preserves keywords | Error | Inference failure | Keyword results, accurate status | Backend integration | ❌ Final run pending |
+| 17 | Semantic failure preserves keywords | Error | Inference failure | Keyword results, accurate status | Backend integration | ✅ 46-case schema/retrieval run |
 | 18 | Revised search works end to end | Happy | Real backend/local index | Library → explicit AI results | Real-backend Playwright | ❌ Final run pending |
-| 19 | Selection always offers Done | Edge | Grouped Family view, keyboard selection | Count and Done visible outside tools | Frontend unit | ❌ Final run pending |
+| 19 | Selection always offers Done | Edge | Grouped Family view, keyboard selection | Count and Done visible outside tools | Frontend unit | ✅ CI unit/coverage |
+| 20 | Localized search shortcut | Happy | Spanish UI, slash key | Search library receives focus | Playwright | ✅ Six focused browser cases |
+| 21 | Independent consumer sees deferred publication | Edge | Background projection already leased | All four searchable subject types returned | Backend e2e | ✅ Isolated consumer cases |
+| 22 | Revoked local consent cancels warmup | Edge | Concurrent WAL read/write | Loader stops; provider is not warm | Backend integration | ✅ Focused compatibility regressions |
+| 23 | Thumbnail fallback preserves render identity | Edge | Rust multiview / media thumbnail versions differ | No incompatible copying; fallback still serves search | Backend integration | ✅ Focused compatibility regressions |
+| 24 | Native scale fixtures leave no schema drift | Edge | Scale tests followed by Alembic comparison | No leaked native tables; unmanaged drift still detected | Backend repo/integration | ✅ 46-case schema/retrieval run |
