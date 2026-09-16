@@ -98,7 +98,7 @@ cases passed. The rollback regression now explicitly advances the base branch's
 deferred projection worker, restoring its intended publication assertion.
 Existing text, visual and sparse quality files passed.
 
-On commit `a8a910c6`, CI passed all 2,712 frontend tests (2,453 app, 199 UI,
+On commit `7279d1d2`, CI passed all 2,712 frontend tests (2,453 app, 199 UI,
 60 domain), lint, type checking and the ratcheted coverage gate. App coverage was
 82.45% statements and 77.64% branches. The previously interrupted local undo run
 is superseded by that complete clean-runner verification. All 81 mock-browser
@@ -110,7 +110,9 @@ collection creation/deletion, saved views, Favorites, multipart creation, all th
 Family flows, Similar review, batch tag/delete, selection moves with Undo, revision labels and
 permission preflight. The required WebDAV restart/safe-GC flow also passed after
 correcting its stale heading assertion to the base branch’s “Storage location”
-label. Final CI status is tracked on PR #178.
+label. The remote-backup suite also opens the existing migration disclosure before
+using its shared provider picker; all three backup/Nextcloud browser cases passed
+locally, including linked-target protection. Final CI status is tracked on PR #178.
 
 Manual inspection used only repository mock data at 390px and 1280px, both themes,
 and the 400px minimum detail panel. Library and search pages had no horizontal
@@ -195,3 +197,4 @@ Status denotes final verified evidence, not merely a test's presence.
 | 36 | Invalid embedded base64 is rejected | Error | Malformed G-code thumbnail payload | No embedded preview | Backend unit | ✅ Focused boundary tests |
 | 37 | Truncated thumbnail line is rejected | Edge | Unterminated G-code header | No embedded preview | Backend unit | ✅ Focused boundary tests |
 | 38 | Legacy migration can pull its pinned source | Error | Docker Hub image unavailable | Identical Quay digest; twice-verified copy retains source objects | Repo / container integration | ✅ 22 config cases and two real migrations |
+| 39 | Shared provider forms preserve linked targets | Edge | Nextcloud connection edited through current storage navigation | Credentials retained; incompatible linked-target edit rejected | Real-backend Playwright | ✅ All three remote-backup cases |

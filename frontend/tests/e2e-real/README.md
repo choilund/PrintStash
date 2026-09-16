@@ -58,6 +58,9 @@ destination, disables local backup creation, purges an uploaded Model, restores
 the remote archive, and verifies the downloaded Artifact bytes exactly. It is
 part of `pnpm test:e2e:critical`, not the ordinary serial real-backend suite, so
 state from another scenario cannot make recovery pass accidentally.
+Its shared-provider form case opens the storage migration disclosure before
+choosing Nextcloud, then verifies credential retention and linked-target protection
+when editing the remote connection.
 
 `helpers.ts` seeds the first admin via `/setup` once and injects a real JWT into
 the browser, so tests boot authenticated. The suite runs serially on one DB, so
