@@ -98,15 +98,19 @@ cases passed. The rollback regression now explicitly advances the base branch's
 deferred projection worker, restoring its intended publication assertion.
 Existing text, visual and sparse quality files passed.
 
-On commit `da83f8d9`, CI passed all 2,712 frontend tests (2,453 app, 199 UI,
+On commit `a8a910c6`, CI passed all 2,712 frontend tests (2,453 app, 199 UI,
 60 domain), lint, type checking and the ratcheted coverage gate. App coverage was
-82.45% statements and 77.65% branches. The previously interrupted local undo run
-is superseded by that complete clean-runner verification. The five new mock-browser
-search/detail tests passed; broader browser testing exposed a missing search-status
-mock and an obsolete Spanish accessible-label locator, which are corrected here.
-The caption mock gap is also closed. The real-browser helper now waits for the toolbar before choosing its responsive
-menu, and the Similar saved-view workflow opens the advanced filters and Library
-tools explicitly. Final CI status is tracked on PR #178.
+82.45% statements and 77.64% branches. The previously interrupted local undo run
+is superseded by that complete clean-runner verification. All 81 mock-browser
+tests passed, including the five new search/detail cases. Missing search-status
+and caption mocks and an obsolete Spanish accessible-label locator are corrected.
+The real-browser helper waits for the toolbar before choosing its responsive menu, and the Similar saved-view workflow opens the advanced filters and Library
+tools explicitly. Local real-backend runs verified the AI-search headline flow,
+collection creation/deletion, saved views, Favorites, multipart creation, all three
+Family flows, Similar review, batch tag/delete, selection moves with Undo, revision labels and
+permission preflight. The required WebDAV restart/safe-GC flow also passed after
+correcting its stale heading assertion to the base branch’s “Storage location”
+label. Final CI status is tracked on PR #178.
 
 Manual inspection used only repository mock data at 390px and 1280px, both themes,
 and the 400px minimum detail panel. Library and search pages had no horizontal
@@ -157,10 +161,11 @@ Status denotes final verified evidence, not merely a test's presence.
 | 15 | Weak matches are rejected | Edge | Absent concept / below-floor image | No strong matches, AI remains available | Backend integration | ✅ Measured text plus image API contract |
 | 16 | Search respects visibility | Error | Private/trashed/filtered candidates | No unauthorized results | Backend integration/PostgreSQL | ✅ Both candidate paths and PostgreSQL cases |
 | 17 | Semantic failure preserves keywords | Error | Inference failure | Keyword results, accurate status | Backend integration | ✅ 46-case schema/retrieval run |
-| 18 | Revised search works end to end | Happy | Real backend/local index | Library → explicit AI results | Real-backend Playwright | ❌ Final run pending |
+| 18 | Revised search works end to end | Happy | Real backend/local index | Library → explicit AI results | Real-backend Playwright | ✅ Real local-index headline flow |
 | 19 | Selection always offers Done | Edge | Grouped Family view, keyboard selection | Count and Done visible outside tools | Frontend unit | ✅ CI unit/coverage |
 | 20 | Localized search shortcut | Happy | Spanish UI, slash key | Search library receives focus | Playwright | ✅ Six focused browser cases |
 | 21 | Independent consumer sees deferred publication | Edge | Background projection already leased | All four searchable subject types returned | Backend e2e | ✅ Isolated consumer cases |
 | 22 | Revoked local consent cancels warmup | Edge | Concurrent WAL read/write | Loader stops; provider is not warm | Backend integration | ✅ Focused compatibility regressions |
 | 23 | Thumbnail fallback preserves render identity | Edge | Rust multiview / media thumbnail versions differ | No incompatible copying; fallback still serves search | Backend integration | ✅ Focused compatibility regressions |
 | 24 | Native scale fixtures leave no schema drift | Edge | Scale tests followed by Alembic comparison | No leaked native tables; unmanaged drift still detected | Backend repo/integration | ✅ 46-case schema/retrieval run |
+| 25 | WebDAV configuration survives restart | Happy | Setup, restart, safe-GC preview | Active provider and retained remote bytes verified | Real-backend Playwright | ✅ Full restart/lifecycle flow |

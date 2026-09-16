@@ -108,14 +108,17 @@ test.describe("saved views", () => {
     await expect(starredArticle.getByLabel(`Remove ${starred} from favorites`)).toBeVisible();
 
     await openLibraryTools(page);
-    await page.getByRole("button", { name: "Favorites", exact: true }).click();
+    const favorites = page
+      .getByRole("region", { name: "Library tools", exact: true })
+      .getByRole("button", { name: "Favorites", exact: true });
+    await favorites.click();
     await expect(page).toHaveURL(/favorites=true/);
     await expect(modelCard(page, starred)).toBeVisible();
     await expect(modelCard(page, plain)).toHaveCount(0);
 
     // Toggling off restores the plain model to the grid.
     await openLibraryTools(page);
-    await page.getByRole("button", { name: "Favorites", exact: true }).click();
+    await favorites.click();
     await expect(modelCard(page, plain)).toBeVisible();
 
     // Cleanup: unstar so the shared DB doesn't drift the favorites facet.

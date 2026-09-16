@@ -382,7 +382,6 @@ test.describe("Manual Model Families", () => {
       }
       // ── Detail entry keeps the original selection while adding a sibling ──
       await page.goto(`/models/${models[0].id}`);
-      await openLibraryTools(page);
       await page.getByRole("button", { name: "Create Family", exact: true }).click();
       const create = page.getByRole("dialog", { name: "Create Family" });
       await create.getByRole("textbox", { name: "Family name" }).fill(`${prefix} source`);
