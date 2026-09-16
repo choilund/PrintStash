@@ -1571,7 +1571,7 @@ describe("ModelBrowser", () => {
   });
 
   describe("clearing filters", () => {
-    it("clears Family, history and ordinary filters together while retaining sort", async () => {
+    it("clears all filters while retaining sort", async () => {
       localStorage.setItem("ps-vault-family-browse", "families_collapsed");
       localStorage.setItem("ps-vault-sort", "name-asc");
       const { requests } = renderVault({

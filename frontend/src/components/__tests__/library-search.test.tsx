@@ -44,7 +44,7 @@ describe("LibrarySearch", () => {
     expect(screen.getByRole("searchbox")).toHaveValue("");
     expect(screen.getByRole("searchbox")).toHaveFocus();
   });
-  it("clears only the library query and retains collection, tags and sorting", async () => {
+  it("clears only the library query", async () => {
     searchBox({ at: "/?c=Tools&tag=useful&sort=name_asc&q=boat" });
     await userEvent.setup().click(screen.getByRole("button", { name: "Clear search" }));
     expect(screen.getByTestId("location")).toHaveTextContent("/?c=Tools&tag=useful&sort=name_asc");

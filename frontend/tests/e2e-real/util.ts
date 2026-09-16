@@ -2,6 +2,7 @@ import { expect, type Page } from "@playwright/test";
 
 /** Reveal the library's secondary commands through its visible toolbar. */
 export async function openLibraryTools(page: Page): Promise<void> {
+  if (await page.getByRole("region", { name: "Library tools", exact: true }).isVisible()) return;
   const trigger = page.getByRole("button", { name: "Library tools", exact: true });
   if (!(await trigger.isVisible())) {
     await page.getByRole("button", { name: "More", exact: true }).click();
