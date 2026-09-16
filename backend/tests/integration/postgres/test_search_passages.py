@@ -73,11 +73,13 @@ class TestSearchPassages:
                     session.add(model)
                     content_changed(session, "model", [model.id])
                 session.commit()
+                drain_search(session)
                 with batch_content_changes(session):
                     model.name = "Rolled back"
                     session.add(model)
                     content_changed(session, "model", [model.id])
                 session.rollback()
+                drain_search(session)
             with Session(engine) as session:
                 assert (
                     session.exec(select(SearchPassage.text)).one() == "Title: Committed"

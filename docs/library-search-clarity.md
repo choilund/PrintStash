@@ -90,9 +90,14 @@ improvement nor a stable performance regression. The committed vector file retai
 separate actual CPU-inference timings. Exact spelling recovery also passes with AI
 disabled, so finding Spectre no longer depends on a semantic match.
 
-Local verification so far: 37 final lexical/relevance integration tests and 20 core
-helper tests passed; existing text, visual and sparse quality files passed. Frontend
-format/lint/typecheck and backend/core lint/typecheck passed. The security diff scan
+Local verification so far: 37 final lexical/relevance integration tests plus two
+visibility cases passed. Core coverage ran 2,105 tests and all five floor checks:
+99.28% combined statement/branch coverage; both new helpers have 100% coverage.
+The new PostgreSQL cases passed. The full PostgreSQL file exposed an existing
+rollback test that omitted the base branch's deferred projection worker; explicitly
+advancing that worker restored its intended assertion (verified separately).
+Existing text, visual and sparse quality files passed. Frontend format/lint/typecheck
+and backend/core lint/typecheck passed. The security diff scan
 of `4b9afeb9..b91ab3ef` reviewed all 20 source inventory entries and found no reportable
 issue. Broad coverage and browser gates are still in progress; early or interrupted
 runs are not passed gates.
@@ -118,6 +123,7 @@ Status denotes final verified evidence, not merely a test's presence.
 | 13 | Goose matches appearance | Happy | Opaque name, original geometry | Relevant result in top five | Backend integration | ✅ 37-test final retrieval run |
 | 14 | Holder matches function | Happy | Indirect name, functional metadata | Relevant result in top five | Backend integration | ✅ 37-test final retrieval run |
 | 15 | Weak matches are rejected | Edge | Absent concept | No strong matches | Backend integration | ✅ 37-test final retrieval run |
-| 16 | Search respects visibility | Error | Private/trashed/filtered candidates | No unauthorized results | Backend integration/PostgreSQL | ❌ Final run pending |
+| 16 | Search respects visibility | Error | Private/trashed/filtered candidates | No unauthorized results | Backend integration/PostgreSQL | ✅ Both candidate paths and PostgreSQL cases |
 | 17 | Semantic failure preserves keywords | Error | Inference failure | Keyword results, accurate status | Backend integration | ❌ Final run pending |
 | 18 | Revised search works end to end | Happy | Real backend/local index | Library → explicit AI results | Real-backend Playwright | ❌ Final run pending |
+| 19 | Selection always offers Done | Edge | Grouped Family view, keyboard selection | Count and Done visible outside tools | Frontend unit | ❌ Final run pending |

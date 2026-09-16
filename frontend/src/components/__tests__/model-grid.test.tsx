@@ -250,6 +250,18 @@ describe("ModelBrowser", () => {
       await userEvent.setup().click(screen.getByRole("button", { name: "Library tools" }));
       expect(screen.queryByRole("button", { name: "Create Family" })).toBeNull();
     });
+    it("keeps Done visible when selecting from the Family view", async () => {
+      renderVault({
+        at: "/?type=all&browse=families_collapsed",
+        routes: { "GET /api/v1/families/browse": json({ items: [], total: 0 }) },
+      });
+      await screen.findByRole("button", { name: "All Models" });
+      await userEvent.setup().keyboard("s");
+      expect(screen.getByRole("button", { name: "Done" })).toBeVisible();
+      expect(screen.getByText("0 selected")).toBeVisible();
+      await userEvent.setup().click(screen.getByRole("button", { name: "Done" }));
+      expect(screen.queryByText("0 selected")).toBeNull();
+    });
     it("exposes active family filters on arrival", async () => {
       renderVault({ at: "/?in_family=yes" });
       expect(screen.getAllByRole("button", { name: "Filters" }).at(-1)).toHaveAttribute(

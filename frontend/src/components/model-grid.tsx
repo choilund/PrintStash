@@ -2607,27 +2607,31 @@ export function ModelBrowser({ initial }: { initial?: BrowserInitialData }) {
             </section>
           )}
 
-          {docView === "models" && familyMode === "models" && selectMode && (
-            <div className="px-4 sm:px-6 py-2 bg-muted border-b border-border flex items-center gap-3 text-xs">
+          {selectMode && (
+            <div className="px-4 sm:px-6 py-2 bg-muted border-b border-border flex flex-wrap items-center gap-3 text-xs">
               <span className="font-mono text-muted-foreground">
                 {uiText("{value1} selected", { value1: String(selectionCount ?? "") })}
               </span>
-              <button
-                type="button"
-                onClick={selectAllVisible}
-                className="font-medium text-primary hover:underline"
-              >
-                {uiText("Select all on screen (")}
-                {sortedModels.length + visibleCollections.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => void selectAllMatching()}
-                disabled={selectingAll}
-                className="font-medium text-primary hover:underline disabled:opacity-50"
-              >
-                {selectingAll ? uiText("Selecting…") : uiText("Select all matching models")}
-              </button>
+              {docView === "models" && familyMode === "models" && (
+                <>
+                  <button
+                    type="button"
+                    onClick={selectAllVisible}
+                    className="font-medium text-primary hover:underline"
+                  >
+                    {uiText("Select all on screen (")}
+                    {sortedModels.length + visibleCollections.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void selectAllMatching()}
+                    disabled={selectingAll}
+                    className="font-medium text-primary hover:underline disabled:opacity-50"
+                  >
+                    {selectingAll ? uiText("Selecting…") : uiText("Select all matching models")}
+                  </button>
+                </>
+              )}
               <Button size="xs" variant="outline" onClick={toggleSelectMode}>
                 {uiText("Done")}
               </Button>

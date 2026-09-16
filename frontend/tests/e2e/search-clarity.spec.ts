@@ -38,7 +38,8 @@ test.describe("search clarity", () => {
     await expect(name).toBeVisible();
     expect(await name.evaluate((el) => el.getBoundingClientRect().width)).toBeGreaterThan(220);
     await expect(page.getByRole("link", { name: "Compare", exact: true })).toBeVisible();
-    await name.scrollIntoViewIfNeeded();
+    await page.getByRole("link", { name: "Compare", exact: true }).scrollIntoViewIfNeeded();
+    await expect(page.getByRole("link", { name: "Compare", exact: true })).toBeInViewport();
     await page.screenshot({ path: "/tmp/printstash-similar-desktop.png" });
   });
 

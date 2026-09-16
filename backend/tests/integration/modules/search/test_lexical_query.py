@@ -43,8 +43,20 @@ class TestLexicalQuery:
 
         assert [row.subject_id for row in result.items] == [expected.id]
 
-    def test_spelling_candidates_respect_access_scope(
-        self, db_session, make_user, make_collection, make_model
+    @pytest.mark.parametrize(
+        "query,name,description",
+        [("specter", "Spectre", ""), ("holder", "Phone base", "A phone cradle")],
+        ids=["spelling", "functional-metadata"],
+    )
+    def test_candidates_respect_access_scope(
+        self,
+        db_session,
+        make_user,
+        make_collection,
+        make_model,
+        query,
+        name,
+        description,
     ):
         from app.db.models import CollectionRole, ModelStar
         from app.schemas.models import ModelFilters
@@ -54,12 +66,20 @@ class TestLexicalQuery:
         shared = make_collection("Shared")
         private = make_collection("Private")
         grant_collection_role(db_session, viewer, shared, CollectionRole.VIEW)
-        visible = make_model("Spectre", collection=shared, starred=True)
+        visible = make_model(
+            name, description=description, collection=shared, starred=True
+        )
         db_session.add(ModelStar(user_id=viewer.id, model_id=visible.id))
         db_session.commit()
-        hidden = make_model("Spectre secret", collection=private)
-        deleted = make_model("Spectre deleted", collection=shared, trashed=True)
-        excluded = make_model("Spectre other", collection=shared)
+        hidden = make_model(
+            name + " secret", description=description, collection=private
+        )
+        deleted = make_model(
+            name + " deleted", description=description, collection=shared, trashed=True
+        )
+        excluded = make_model(
+            name + " other", description=description, collection=shared
+        )
         content_changed(
             db_session, "model", [visible.id, hidden.id, deleted.id, excluded.id]
         )
@@ -67,9 +87,7 @@ class TestLexicalQuery:
         lexical_index.rebuild_partition(db_session)
         db_session.commit()
 
-        result = search(
-            db_session, viewer, "specter", filters=ModelFilters(favorites=True)
-        )
+        result = search(db_session, viewer, query, filters=ModelFilters(favorites=True))
 
         assert [row.subject_id for row in result.items] == [visible.id]
         assert hidden.name not in str(result)
