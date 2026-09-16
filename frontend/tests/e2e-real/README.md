@@ -123,7 +123,7 @@ downloads identical bytes through the linked Artifact. This is transport evidenc
 not hosted-account certification. Run `pnpm exec playwright test -c
 playwright.storage-presets.config.ts`.
 
-Storage insights: reads real capacity evidence, persists a measurement, and confirms receipt-verified expired staging cleanup.
+Storage insights: reads real capacity evidence, persists a measurement, and confirms cleanup of a receipt-verified expired staging fixture in the disposable suite database. The file must remain until the confirmation is accepted.
 
 Native S3 browser delivery has a dedicated fixture and config:
 `pnpm exec playwright test --config playwright.delivery.config.ts` (also included

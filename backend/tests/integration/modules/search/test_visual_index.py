@@ -339,6 +339,10 @@ class TestVisualIndex:
         )
         if changed is None:
             assert result.rgb == bytes([255, 0, 0]) * 32 * 32
+            served = visual_index.render(
+                get_session_factory(), file, recipe, InferenceContext.bounded(10)
+            )
+            assert served.thumbnail.rgb == result.rgb
         else:
             assert result is None
 
@@ -829,3 +833,48 @@ class TestFilteredVisualQuery:
         )
         assert [item.subject_id for item in result.items] == [model.id]
         assert any(evidence.leg == "multiview" for evidence in result.items[0].evidence)
+
+
+class TestThumbnailVectorReuse:
+    def test_reuses_native_thumbnail_vectors_during_rebuild(
+        self, db_session, visual_setup, advance_generation, monkeypatch
+    ):
+        actor, encoder, model, file = visual_setup
+        first = generations.prepare(
+            db_session,
+            actor,
+            GenerationProposal(
+                local_model_id=encoder.id, index_backend="numpy", profile="thumbnail"
+            ),
+        )
+        advance_generation(first.id)
+        db_session.expire_all()
+        old_vectors = db_session.exec(
+            select(PassageVector).where(PassageVector.generation_id == first.id)
+        ).all()
+        assert len(old_vectors) == 1
+        expected_vector = old_vectors[0].vector_blob
+
+        def never_render(*args, **kwargs):
+            raise AssertionError("current thumbnail vectors must be reused")
+
+        monkeypatch.setattr(visual_index, "render", never_render)
+        second = generations.prepare(
+            db_session,
+            actor,
+            GenerationProposal(
+                local_model_id=encoder.id,
+                index_backend="numpy",
+                profile="thumbnail",
+            ),
+        )
+        advance_generation(second.id)
+        db_session.expire_all()
+        assert db_session.get(IndexGeneration, second.id).copied == 1
+        vectors = db_session.exec(
+            select(PassageVector).where(PassageVector.generation_id == second.id)
+        ).all()
+        assert len(vectors) == 1
+        assert vectors[0].vector_blob == expected_vector
+        assert vectors[0].subject_id == model.id
+        assert vectors[0].file_id == file.id

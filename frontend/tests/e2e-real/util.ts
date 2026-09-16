@@ -1,4 +1,29 @@
 import { expect, type Page } from "@playwright/test";
+import { execFile } from "node:child_process";
+import { resolve } from "node:path";
+import { promisify } from "node:util";
+
+/** Seed time-expired bytes in this suite's disposable database, never the live library. */
+export async function seedExpiredStaging(): Promise<{ itemId: number; path: string }> {
+  const backend = resolve("../backend");
+  const root = resolve(process.env.PLAYWRIGHT_REAL_DATA_DIR ?? "tests/e2e-real/.data");
+  const { stdout } = await promisify(execFile)(
+    resolve(backend, ".venv/bin/python"),
+    ["-m", "tests.fakes.storage_cleanup_seed"],
+    {
+      cwd: backend,
+      env: {
+        ...process.env,
+        VAULT_DB_URL: `sqlite:///${root}/test.sqlite`,
+        VAULT_DATA_DIR: resolve(root, "files"),
+        VAULT_THUMB_DIR: resolve(root, "thumbs"),
+        VAULT_STAGING_DIR: resolve(root, "staging"),
+        VAULT_BACKUP_DIR: resolve(root, "backups"),
+      },
+    },
+  );
+  return JSON.parse(stdout);
+}
 
 /** Reveal the library's secondary commands through its visible toolbar. */
 export async function openLibraryTools(page: Page): Promise<void> {

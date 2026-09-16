@@ -135,8 +135,15 @@ The scale-test fixture also retires/drops its native index DDL before its regist
 rows are cleared. The leak was reproduced by running scale tests immediately
 before the unchanged Alembic schema-drift checks.
 
-Broader backend and real-browser gates must finish successfully before this PR
-is marked ready; interrupted local runs are not passed gates.
+The Python 3.13 compatibility run passed all 13,037 ordinary cases, then exhausted
+its old 30-minute job limit while progressing through the serial provider-contract
+pass. Its allowance is now 60 minutes, with the full test command unchanged and a
+workflow regression check. The required backend run passed 13,037 ordinary cases
+and 286 provider cases; its coverage audit then identified six inherited preview
+and visual-index boundary gaps. Focused regression tests cover those paths without
+lowering any floor. The new unit boundaries passed 25 cases; seven focused
+integration cases passed after correcting their fixtures. Broader backend and real-browser gates must finish
+successfully before this PR is marked ready; interrupted runs are not passed gates.
 
 ## Acceptance coverage
 
@@ -169,3 +176,15 @@ Status denotes final verified evidence, not merely a test's presence.
 | 23 | Thumbnail fallback preserves render identity | Edge | Rust multiview / media thumbnail versions differ | No incompatible copying; fallback still serves search | Backend integration | ✅ Focused compatibility regressions |
 | 24 | Native scale fixtures leave no schema drift | Edge | Scale tests followed by Alembic comparison | No leaked native tables; unmanaged drift still detected | Backend repo/integration | ✅ 46-case schema/retrieval run |
 | 25 | WebDAV configuration survives restart | Happy | Setup, restart, safe-GC preview | Active provider and retained remote bytes verified | Real-backend Playwright | ✅ Full restart/lifecycle flow |
+| 26 | Storage cleanup requires confirmation | Happy | Receipt-verified expired staging fixture | Bytes remain before confirmation and disappear afterward | Real-backend Playwright | ✅ Real file lifecycle verified |
+| 27 | Compatibility CI includes provider contracts | Edge | Full lane follows ordinary tests with serial provider tests | Sufficient bounded job allowance, full command retained | Backend repo | ✅ 17 workflow checks |
+| 28 | Empty geometry has no thumbnail | Edge | Missing mesh | No fabricated preview | Backend unit | ✅ Focused boundary tests |
+| 29 | Native render failure is recoverable | Error | Renderer exception | Missing derivative rather than API failure | Backend unit | ✅ Focused boundary tests |
+| 30 | Hostile ASCII yields only valid geometry | Error | Malformed vertices and oversized lines | Valid bounded sample marked incomplete | Backend unit | ✅ Focused boundary tests |
+| 31 | Invalid thumbnail width is rejected | Error | Out-of-range or noninteger width | Stable validation failure | Backend unit | ✅ Focused boundary tests |
+| 32 | Worker publishes complete output | Happy | Real native STL render | Complete manifest and atomic output | Backend unit | ✅ Focused boundary tests |
+| 33 | Late thumbnail failure preserves current owner | Edge | Lease replaced during failed render | New lease unchanged; no publication | Backend integration | ✅ Seven focused integration cases |
+| 34 | Thumbnail vectors survive rebuilding | Edge | New generation with the same thumbnail recipe | Verified bytes reused without rendering | Backend integration | ✅ Seven focused integration cases |
+| 35 | Native thumbnail decoder failure is recoverable | Error | Decoder exception | No raw untrusted preview | Backend unit | ✅ Focused boundary tests |
+| 36 | Invalid embedded base64 is rejected | Error | Malformed G-code thumbnail payload | No embedded preview | Backend unit | ✅ Focused boundary tests |
+| 37 | Truncated thumbnail line is rejected | Edge | Unterminated G-code header | No embedded preview | Backend unit | ✅ Focused boundary tests |
