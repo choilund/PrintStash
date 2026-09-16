@@ -16,6 +16,8 @@
 
 - AI search recovers bounded name misspellings, finds functional holder metadata,
   and rejects weak short-query matches before combining retrieval signals.
+- The legacy MinIO migration helper pulls its unchanged, digest-pinned release
+  from the official Quay registry after Docker Hub stopped serving the image.
 
 ### Performance
 

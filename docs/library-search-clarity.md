@@ -142,8 +142,14 @@ workflow regression check. The required backend run passed 13,037 ordinary cases
 and 286 provider cases; its coverage audit then identified six inherited preview
 and visual-index boundary gaps. Focused regression tests cover those paths without
 lowering any floor. The new unit boundaries passed 25 cases; seven focused
-integration cases passed after correcting their fixtures. Broader backend and real-browser gates must finish
+integration cases passed after correcting their fixtures. All 157 cases in the
+six affected test files subsequently passed together. Broader backend and real-browser gates must finish
 successfully before this PR is marked ready; interrupted runs are not passed gates.
+
+The compatibility workflow edit also activated the migration smoke test. Docker
+Hub denied its pinned MinIO pull; [MinIO’s documented Quay registry](https://github.com/minio/minio/blob/master/docs/docker/README.md)
+serves the identical release and manifest digest. Only the registry address changes;
+the release, digest, network isolation and retained source volume are unchanged.
 
 ## Acceptance coverage
 
@@ -188,3 +194,4 @@ Status denotes final verified evidence, not merely a test's presence.
 | 35 | Native thumbnail decoder failure is recoverable | Error | Decoder exception | No raw untrusted preview | Backend unit | ✅ Focused boundary tests |
 | 36 | Invalid embedded base64 is rejected | Error | Malformed G-code thumbnail payload | No embedded preview | Backend unit | ✅ Focused boundary tests |
 | 37 | Truncated thumbnail line is rejected | Edge | Unterminated G-code header | No embedded preview | Backend unit | ✅ Focused boundary tests |
+| 38 | Legacy migration can pull its pinned source | Error | Docker Hub image unavailable | Identical Quay digest; twice-verified copy retains source objects | Repo / container integration | ✅ 22 config cases and two real migrations |
