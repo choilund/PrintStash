@@ -116,6 +116,13 @@ locally, including linked-target protection. The migration browser flow opens th
 disclosure before planning and again after restart, preserving all copy, cutover,
 audit and downloaded-byte assertions. Both onboarding variants passed (four cases),
 and the migration restart/cutover case passed. Final CI status is tracked on PR #178.
+The natural-language browser flow opens Search options before preferences and saved
+views, and verifies that restored filters do not trigger another parser call.
+The point-cloud flow checks retained `point_cloud` API evidence while asserting that
+the removed explanation and shape-match text are absent from result cards. Both
+updated flows passed locally. A separate visual-flow retry recorded
+`ERR_NETWORK_CHANGED`; the same flow passed in the preceding run, and its assertions
+and timeouts remain unchanged.
 
 Manual inspection used only repository mock data at 390px and 1280px, both themes,
 and the 400px minimum detail panel. Library and search pages had no horizontal
@@ -125,8 +132,9 @@ browser artifacts include phone/desktop screenshots, Back and clear-query checks
 and detail-tab keyboard focus assertions.
 
 Security diff scans of `4b9afeb9..b91ab3ef` and `b91ab3ef..da83f8d9` found no
-reportable findings across all production inventory entries. Subsequent changes
-are test setup/regressions and this evidence document; their diffs were reviewed.
+reportable findings across all production inventory entries. Incremental scans
+cover the subsequent retrieval, CI configuration and regression changes. The final
+caption transaction change receives its own immutable incremental review before publication.
 Impeccable's mechanical detector reported no findings in the changed components.
 Python 3.13 reproduced an anonymous SQL CTE name collision in the unchanged sparse
 quality benchmark. A materialized keyword-score CTE now has an explicit nested
@@ -157,7 +165,9 @@ pass. Its allowance is now 60 minutes, with the full test command unchanged and 
 workflow regression check. The required backend run passed 13,037 ordinary cases
 and 286 provider cases; its coverage audit then identified six inherited preview
 and visual-index boundary gaps. Focused regression tests cover those paths without
-lowering any floor. The new unit boundaries passed 25 cases; seven focused
+lowering any floor. Commit `7279d1d2` subsequently passed all 13,052 ordinary
+cases, 286 provider contracts and ten coverage checks at 94.14% combined coverage.
+The new unit boundaries passed 25 cases; seven focused
 integration cases passed after correcting their fixtures. All 157 cases in the
 six affected test files subsequently passed together. Broader backend and real-browser gates must finish
 successfully before this PR is marked ready; interrupted runs are not passed gates.
@@ -166,6 +176,16 @@ The compatibility workflow edit also activated the migration smoke test. Docker
 Hub denied its pinned MinIO pull; [MinIO’s documented Quay registry](https://github.com/minio/minio/blob/master/docs/docker/README.md)
 serves the identical release and manifest digest. Only the registry address changes;
 the release, digest, network isolation and retained source volume are unchanged.
+
+Caption dismissal exposed a real SQLite WAL read-to-write upgrade race. A two-connection
+regression reproduced the failure before the fix; reserving the writer before reading
+keeps caption changes writable while preserving the existing transaction helper contract. All
+76 focused caption/API/session cases passed, followed by the real caption browser
+flow. A separate rollback regression verifies that an existing caller transaction
+retains ownership. Storage restart tests stop browser polling during their deliberate
+offline window while retaining the same credentials and all byte-integrity assertions.
+WebDAV and authenticated S3 delivery passed; optional Nextcloud/SFTP cases were not
+configured in that local run.
 
 ## Acceptance coverage
 
@@ -215,3 +235,7 @@ Status denotes final verified evidence, not merely a test's presence.
 | 40 | Repeated sparse queries compile safely | Edge | Changed queries and independently composed readers on Python 3.13 | Stable ranking; excluded passages remain absent | Backend integration | ✅ Eleven sparse cases including the frozen benchmark |
 | 41 | Unmatched library search has an empty state | Edge | Populated library and unique absent token | Empty-state message and no Model links | Real-backend Playwright | ✅ Seeded browser regression |
 | 42 | Migration controls remain reachable after restart | Edge | Collapsed storage section before planning and recovery | Verified cutover, audit and unchanged Artifact bytes | Real-backend Playwright | ✅ Complete migration lifecycle |
+| 43 | Natural-language controls remain discoverable | Edge | Search options opened before preferences and saved views | Editable filters restore without another parser call | Real-backend Playwright | ✅ Complete natural-language flow |
+| 44 | Point-cloud evidence remains available through the API | Happy | Ready local point profile and matching query | API evidence retained; result-card explanations absent | Real-backend Playwright | ✅ Complete point-profile flow |
+| 45 | Caption dismissal survives a concurrent writer | Edge | Two real SQLite WAL connections at caption lookup | Dismissal persists without changing human description | Backend integration / real-backend Playwright | ✅ Deterministic race and caption browser flow |
+| 46 | Writer reservation respects caller rollback | Edge | Existing transaction contains uncommitted Model edit | The pending Model edit rolls back | Backend integration | ✅ `test_caption_concurrency.py::test_writer_reservation_preserves_an_existing_transaction` |

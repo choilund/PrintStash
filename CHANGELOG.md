@@ -16,6 +16,8 @@
 
 - AI search recovers bounded name misspellings, finds functional holder metadata,
   and rejects weak short-query matches before combining retrieval signals.
+- Caption edits and dismissal reserve the SQLite writer before reading, avoiding
+  failed updates when background indexing commits concurrently.
 - Sparse search avoids temporary SQL query-name collisions on Python 3.13 while
   preserving keyword scores and candidate filtering.
 - The legacy MinIO migration helper pulls its unchanged, digest-pinned release

@@ -2,7 +2,7 @@
 import { test, expect } from "../helpers";
 import { modelCard, uploadModel } from "../util";
 import { readFileSync } from "node:fs";
-import type { InferenceModel, SearchSettingsRead } from "../../../src/types/search";
+import type { InferenceModel, SearchResponse, SearchSettingsRead } from "../../../src/types/search";
 import type { ModelRead } from "../../../src/types/models";
 
 const API = `http://127.0.0.1:${process.env.PLAYWRIGHT_REAL_API_PORT ?? 8410}`;
@@ -311,12 +311,26 @@ test.describe("AI Search", () => {
           { timeout: 90000 },
         )
         .toContain("point_cloud");
+      const searched = page.waitForResponse((response) => {
+        const url = new URL(response.url());
+        return (
+          url.pathname === "/api/v1/search" &&
+          url.searchParams.get("q") === "a cube" &&
+          url.searchParams.get("instant") !== "true"
+        );
+      });
       await page.goto("/search?q=a+cube");
       const link = page.getByRole("link", { name, exact: true });
       await expect(link).toBeVisible();
-      await expect(
-        link.locator("xpath=ancestor::li").getByText("Shape match", { exact: true }),
-      ).toBeVisible();
+      const response = await searched;
+      expect(response.ok()).toBe(true);
+      const results: SearchResponse = await response.json();
+      expect(
+        results.items.find((item) => item.subject_type === "model" && item.subject_id === modelId)
+          ?.evidence,
+      ).toEqual(expect.arrayContaining([expect.objectContaining({ leg: "point_cloud" })]));
+      await expect(page.getByText("Shape match", { exact: true })).toHaveCount(0);
+      await expect(page.getByText("Why this result", { exact: true })).toHaveCount(0);
       await page.screenshot({ path: testInfo.outputPath("point-search.png"), fullPage: true });
     } finally {
       await page.request.put(`${API}/api/v1/config/ai-search`, { data: initial.settings });

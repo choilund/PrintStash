@@ -104,6 +104,9 @@ test.describe("storage provider setup", () => {
     await expect(page).toHaveURL(/\/getting-started$/);
     await page.getByRole("button", { name: "I'll do this later" }).click();
 
+    // Stop UI polling while the fixture deliberately takes the API offline;
+    // the same browser context retains its credentials across the restart.
+    await page.goto("about:blank");
     await writeFile(restartTrigger, "restart\n", "utf8");
     await expect.poll(() => existsSync(restartTrigger)).toBe(false);
     await expect
@@ -182,6 +185,7 @@ test.describe("storage provider setup", () => {
     await page.getByLabel("Root").fill("vault-data");
     await page.getByRole("button", { name: "Save configuration" }).click();
 
+    await page.goto("about:blank");
     await writeFile(restartTrigger, "restart\n", "utf8");
     await expect.poll(() => existsSync(restartTrigger)).toBe(false);
     await expect
@@ -252,6 +256,7 @@ test.describe("storage provider setup", () => {
     await page.getByLabel("Root").fill("vault-data");
     await page.getByRole("button", { name: "Save configuration" }).click();
 
+    await page.goto("about:blank");
     await writeFile(restartTrigger, "restart\n", "utf8");
     await expect.poll(() => existsSync(restartTrigger)).toBe(false);
     await expect
